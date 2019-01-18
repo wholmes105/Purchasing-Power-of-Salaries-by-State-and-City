@@ -6,4 +6,4 @@ This app uses data from Indeed.com provided as part of Datafest (an annual compe
 This app can be accessed remotely by loading the Shiny package and entering the following command into R
 runGitHub( "Purchasing-Power-of-Salaries-by-State-and-City", "wholmes105")
 
-Note: this app makes use of the dplyr, shiny, and shinyjs packages
+Note: this app makes use of the dplyr, shiny, and shinyjs packages; see the attached ReadMe.docx for a detailed explanation of the app and a table containing the metadata.
