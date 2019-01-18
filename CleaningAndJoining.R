@@ -1,5 +1,11 @@
 # Datafest 2018 Data Cleaning Script
 
+# Note: Because Github sets a size limit of 25MB on file uploads, the original data cannot be included
+  # with this file. However, by loading the shiny package and running the line below, the app can 
+  # be viewed remotely from anywhere with an internet connection (please allow a few moments for 
+  # teh app to load after the function is run)
+# runGitHub("Purchasing-Power-of-Salaries-by-State-and-City", "wholmes105")
+
 # Load the necessary packages and import the data ####
   library(dplyr)
   library(readxl)
