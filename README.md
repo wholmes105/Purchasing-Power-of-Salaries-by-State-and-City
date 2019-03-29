@@ -6,7 +6,7 @@ January 17, 2019
 Hosting
 =======
 
-This app is hosted on GitHub, it can also be viewed remotely on any machine that has R installed by entering the following command into the R console (note that this app requires the `dplyr`, `shiny`, and `shinyjs` packages):
+Because this app is hosted on GitHub, it can also be viewed remotely on any machine that has R installed by entering the following command into the R console (note that this app requires the `dplyr`, `shiny`, and `shinyjs` packages):
 
 ``` eval
 runGitHub("Purchasing-Power-of-Salaries-by-State-and-City", "wholmes105")
