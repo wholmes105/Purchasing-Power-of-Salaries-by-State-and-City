@@ -5,12 +5,10 @@
 library(shiny)
 library(shinyjs)
 library(dplyr)
+library(data.table)
 
 # Load the data
 load('AppData.RData')
-
-# Note the columns that will not be shown to the user
-filterOps = c("estimatedSalary", "adjustedSalary", "CoLDollars", "CoLRatio", "Cost of Living", "CoL")
 
 # Define UI for app that searches jobs by Cost of Living and Salary 
 ui = fluidPage( # ui #### 
@@ -72,11 +70,13 @@ ui = fluidPage( # ui ####
 # Server ####
 server = function(input, output, session) {
   # Create an object to update the options for input$City
-  myData = reactive(sort((AppData %>% filter(State == input$State) %>% select(City) %>% unique())$City))
+  myData = reactive(sort(
+    unique(AppData[State %in% input$State, City])
+  ))
   
   # Note the length of State and City to ensure the user has both inputs filled
-  sl = reactive(length(input$State)) # How many States are selected?
-  cl = reactive(length(input$City)) # How many Cities are selected?
+  state_length = reactive(length(input$State)) # How many States are selected?
+  city_length = reactive(length(input$City)) # How many Cities are selected?
   
   # Create a title for each table
   output$tabletitle1 = renderText("Adjusted Yearly Cost of Living by City")
@@ -85,37 +85,37 @@ server = function(input, output, session) {
   # Update CoLData when City or State are changed
   observeEvent(input$City, { # When a value is added to City
     # Display the City, State, and Cost of Living
-    CoLData = unique(
-      filter(AppData, State == input$State, City == input$City)[, c('State', 'City', 'Cost of Living')]
+    CoLData = distinct(
+      AppData[State %in% input$State][City %in% input$City, c('State', 'City', 'Cost of Living')]
     )
     # Rename the Cost of Living column for the CoLData table and format it appropriately
-    colnames(CoLData)[3] = 'Annual Avg. Cost of Living'
+    colnames(CoLData)[which(colnames(CoLData) == 'Cost of Living')] = 'Annual Avg. Cost of Living'
     CoLData$`Annual Avg. Cost of Living` = format(CoLData$`Annual Avg. Cost of Living`)
     
-    output$CoL = renderTable(
-      if(is.null(input$State) | is.null(input$City)) { # If location is not entered appropriately
-        return(NULL) # Hide the table
-      } else{ # If location is entered appropriately
-        return(CoLData) # Display the table
-      }
-    )
+    output$CoL = renderTable({
+      # If the State and City inputs are not available, do not render the plot
+      req(input$State)
+      req(input$City)
+      
+      return(CoLData)
+    })
   })
   observeEvent(input$State, {
     # Display the City, State, and Cost of Living
-    CoLData = unique( # Update the Cost of Living table
-      filter(AppData, State == input$State, City == input$City)[, c('State', 'City', 'Cost of Living')]
+    CoLData = distinct( # Update the Cost of Living table
+      AppData[State %in% input$State][City %in% input$City, c('State', 'City', 'Cost of Living')]
     )
     # Rename the Cost of Living column for the CoLData table and format it appropriately
-    colnames(CoLData)[3] = 'Annual Avg. Cost of Living'
+    colnames(CoLData)[which(colnames(CoLData) == 'Cost of Living')] = 'Annual Avg. Cost of Living'
     CoLData$`Annual Avg. Cost of Living` = format(CoLData$`Annual Avg. Cost of Living`)
     
-    output$CoL = renderTable(
-      if(is.null(input$State) | is.null(input$City)) { # If location is not entered appropriately
-        return(NULL) # Hide the table
-      } else{ # If location is entered appropriately
-        return(CoLData) # Display the table
-      }
-    )
+    output$CoL = renderTable({
+      # If the State and City inputs are not available, do not render the plot
+      req(input$State)
+      req(input$City)
+      
+      return(CoLData)
+    })
     
     # Update the selectable values for City
     updateSelectizeInput(session, inputId = 'City', choices = myData(),
@@ -130,7 +130,7 @@ server = function(input, output, session) {
   })
   
   # Disable the City and numeric inputs if State is left blank
-  observeEvent(sl(), {
+  observeEvent(state_length(), {
     toggleState(id = 'City', !is.null(input$State))
     toggleState(id = 'Salary', !is.null(input$State))
     toggleState(id = 'adjustedSalary', !is.null(input$State))
@@ -138,7 +138,7 @@ server = function(input, output, session) {
   })
   
   # Disable the State and numeric inputs if City is left blank
-  observeEvent(cl(), {
+  observeEvent(city_length(), {
     toggleState(id = 'State', !is.null(input$City))
     toggleState(id = 'Salary', !is.null(input$City))
     toggleState(id = 'adjustedSalary', !is.null(input$City))
@@ -146,24 +146,33 @@ server = function(input, output, session) {
   })
   
   # Display the relevant Cost of Living Data to the user
-  output$CoL = renderTable(
-    if(is.null(input$State) | is.null(input$City)) { # If location is not entered appropriately
-      return(NULL) # Hide the table
-    } else{ # If location is entered appropriately
-      return(CoLData) # Display the table
-    }
-  )
+  output$CoL = renderTable({
+    # If the State and City inputs are not available, do not render the plot
+    req(input$City)
+    req(input$State)
+    
+    return(CoLData)
+  })
   
   output$Table = renderDataTable({ # Display the front-end data ####
-    if(is.null(input$State) | is.null(input$City)) { # If location is not entered appropriately
-      return(NULL) # Hide the table
-    } else{ # If location is entered appropriately
-      filter(AppData, State == input$State, City == input$City, # Display the table
-             estimatedSalary >= input$Salary,
-             adjustedSalary >= input$adjustedSalary,
-             CoLRatio >= input$`CoLRatio`
-      ) [, -which(colnames(AppData) %in% filterOps)] # Display only formatted data in the table
-    }
+    # If the State and City inputs are not available, do not render the plot
+    req(input$State)
+    req(input$City)
+    
+    # # If location is entered appropriately
+    AppData[
+      State %in% input$State
+    ][
+      City %in% input$City
+    ][
+      estimatedSalary >= input$Salary
+    ][
+      adjustedSalary >= input$adjustedSalary
+    ][CoLRatio >= input$`CoLRatio`][
+      ,
+      .(State, City, CompanyID, JobID, Salary, `Adjusted Salary`, `Salary / Cost of Living`)
+    ]
+    
   })
 }
 
