@@ -12,7 +12,7 @@ This app is hosted on GitHub, it can also be viewed remotely on any machine that
 shiny::runGitHub("Purchasing-Power-of-Salaries-by-State-and-City", "wholmes105")
 ```
 
-**Note:** If the data for the application is not available in the working directory, the app cannot be sourced. Run the `CleaningAndJoining.R` script after downloading the data [here](https://drive.google.com/open?id=1_0aK51m5sPhz0I4VnKVxt29jepU6DEqj) to prepare the requisite data for use in the Shiny app.
+**Note:** If the data for the application is not available in the working directory, the app cannot be sourced. Run the `CleaningAndJoining.R` script after downloading the data [here](https://drive.google.com/open?id=1jAE4DGtAjmyOVbrEjJ5_s4OOEZ990w9G) to prepare the requisite data for use in the Shiny app.
 
 About the Application
 =====================
